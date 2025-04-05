@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IT Audit Comment Processor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    .output {
+      background-color: #f9f9f9;
+      border-left: 4px solid #444;
+      padding: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>IT Audit Comment Processor</h1>
+
+  <label>Client Name:</label>
+  <input type="text" id="client" placeholder="e.g., FH Technikum Wien" />
+
+  <label>Main Contact Person:</label>
+  <input type="text" id="contact" placeholder="e.g., Sylvia Geyer" />
+
+  <label>External Service Provider:</label>
+  <input type="text" id="provider" placeholder="e.g., A1" />
+
+  <label>Comment:</label>
+  <textarea id="comment" placeholder="Write your comment here..." rows="4"></textarea>
+
+  <button onclick="processComment()">Start</button>
+
+  <div class="output" id="maskedText"></div>
+  <div class="output" id="aiOutput"></div>
+  <div class="output" id="finalOutput"></div>
+
+  <script>
+    async function processComment() {
+      const client = document.getElementById('client').value;
+      const contact = document.getElementById('contact').value;
+      const provider = document.getElementById('provider').value;
+      const comment = document.getElementById('comment').value;
+
+      // Step 1: Mask
+      const masked = comment
+        .replaceAll(contact, 'Person X')
+        .replaceAll(client, 'Client A')
+        .replaceAll(provider, 'Company Y');
+      document.getElementById('maskedText').innerText = "Masked: " + masked;
+
+      // Step 2: Send to backend (which sends it to ChatGPT)
+      const response = await fetch('/api/process', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ prompt: masked })
+      });
+
+      const data = await response.json();
+      const aiText = data.output;
+      document.getElementById('aiOutput').innerText = "AI Output: " + aiText;
+
+      // Step 3: Replace placeholders with original values
+      const final = aiText
+        .replaceAll('Person X', contact)
+        .replaceAll('Client A', client)
+        .replaceAll('Company Y', provider);
+      document.getElementById('finalOutput').innerText = "Final Output: " + final;
+    }
+  </script>
+
+</body>
+</html>
